@@ -1,0 +1,277 @@
+
+
+\documentclass[a4paper]{scrartcl}
+
+\usepackage{graphicx} % Required for the inclusion of images
+\usepackage{xcolor}
+\usepackage{epstopdf}
+\usepackage{hyperref}
+
+
+\title{Project Report: \\ Comparison of Matrix Factorization Based
+Compression Methods Applied to Audio\\ Multimedia Communications HS 2013} %Title
+
+\author{Philipp \textsc{Rohr} \\ 04-397-030} % Author name
+
+\date{\today} % Date for the report
+
+\begin{document}
+
+\maketitle % Insert the title, author and date
+
+
+\section{Introduction}
+\subsection{Motivation}
+
+In the course Computational Intelligence Lab\footnote{\url{http://cil.inf.ethz.ch/}}
+we used several matrix factorization approaches to compress images. These
+approaches included Principal Component Analysis, Singular Value Decomposition,
+Discrete Cosine Transformation, Wavelet Transformation and more. During the
+course we developed quite some code to compress images and compared the
+different approaches in terms of compression rate, error and speed. In my
+project I would like to do a similar analysis for audio. I wonder whether the
+results can be compared to image compression, meaning if they are similar in
+error and compression rate or if they should not be applied to audio at all.
+
+
+\subsection{Approach} I plan to extend the Matlab code base developed for the CIL
+course to make it work with audio signals. I am going to implement at least the
+DCT and the Wavelet Compression and compare them in terms of compression rate
+and error. The audio samples that I am going to use are the ones that can be
+found on the Opus codec website\footnote{\url{http://www.opus-codec.org/examples/}},
+one for speech and one with different music styles.
+
+
+\subsection{Expected Outcome}
+
+In CIL we've learned that DCT shall be better for continuous signals while
+wavelet transformation can be better applied to compress localized signals. This
+can be seen in image compression where the wavelet based
+JPEG2000\footnote{\url{http://iphome.hhi.de/wiegand/assets/pdfs/DIC\_JPEG\_2000\_07.pdf}}
+achieves higher compression with remaining quality than its predecessor JPEG
+which is DCT based. Since audio has more continuous characteristics I expect to
+achieve better results with DCT than with the wavelet approach.
+
+\section{Theoretical Background} 
+
+In this work I am using two different methods of basis transformations to get a
+sparser representation of an audio signal. The first method is a Discrete Cosine
+Transformation (DCT) and the the second is a Wavelet Transformation. Each method
+takes an input signal $x$ and an orthogonal basis $U$ and computes the linear
+transformation $$y = U \cdot x$$ The compression then truncates small or
+insignificant values of $y$ yielding the compressed $\hat{y}$. The decompression
+computes the inverse transformation $$\hat{x} = U^T \cdot \hat{y}$$ yielding the
+reconstruction of the original $x$ minus some error.
+
+The performance of a method is measured by its compression rate
+$$ rate=\frac{number\_of\_bytes(\hat{y})}{number\_of\_bytes(x)}$$ and its Peak Signal
+to Noise Ratio $$PSNR=20 \cdot log_{10}\left(\frac{max(x)}{\sqrt{MSE}}\right)$$
+with $$ MSE = mean((x - \hat{x})^2)$$
+
+\subsection{DCT compression} The DCT method partitions the input signal into
+samples of a particular size (in my work 200ms) and transforms the samples into
+its frequency domain using the DCT matrix $U$. In that frequency domain
+frequencies with low amplitude are then cut away yielding only the few
+significant frequencies.
+
+\subsection{Wavelet Compression} The Wavelet compression also transforms the
+input signal into the Wavlet space but does not sample it. The method
+implemented in this work uses a
+Haar\footnote{\url{http://de.wikipedia.org/wiki/Haar-Wavelet}} basis. To perform the
+transformation the signal needs to be shaped into a square matrix with side
+length of a power of 2.
+
+\section{Implementation}
+\label{sec:implementation}
+
+The implementation can be found in folder \texttt{code}: 
+
+\begin{itemize} 
+
+\item \texttt{Benchmark.m} contains two benchmarks. One for DCT and one for
+Wavelets. Each benchmark repeatedly calls \texttt{EvaluateCompression} with a
+varying compression \texttt{factor}. The resulting compression rates and Peak
+Signal to Noise Ratio (PSNR) are saved into a corresponding \texttt{.dat} file.
+
+\item \texttt{EvaluateCompression.m} contains the infrastructure code that reads
+audio signals from the \texttt{audio\_samples} folder, compresses the audio with
+the given compression algorithm, decompresses it and calculates PSNR and
+compression rates.
+
+\item \texttt{DCTCompress.m and DCTDecompress.m} contain the
+compression and decompression code for DCT which is explained in more detail in
+\autoref{sec:dctCompression}.
+
+\item \texttt{WaveletCompress.m and WaveletDecompress.m} contain the
+compression and decompression code with Wavelet Transformation explained in more
+detail in \autoref{sec:waveletCompression}.
+
+\item \texttt{haarTrans.m} is a helper file that sets up an $NxN$
+Haar transformation matrix.
+\end{itemize}
+
+\subsection{DCT Compression}
+\label{sec:dctCompression}
+
+\paragraph{Compression} receives input signal \texttt{W}, sample rate
+\texttt{Fs} and a compression \texttt{factor}. It returns a data structure
+\texttt{W\_comp} containing a sparse matrix and some auxiliary data. Following
+steps are performed:
+
+\begin{enumerate}
+
+\item set $\texttt{sampleSize} = \frac{\texttt{Fs}}{5}$, means having a sample of
+length 200 ms
+
+\item reshape \texttt{W} into a matrix $R$ with size $\texttt{sampleSize} \times
+N$
+
+\item get the DCT basis matrix $U$ with \texttt{dctmtx}
+
+\item transform $R$ to: $Y = U \cdot R$
+
+\item compute a $threshold = mean(abs(Y)) \cdot \texttt{factor}$
+
+\item set all elements $i$ of $Y$ where $Y_i < threshold$ to $0$
+
+\item save \texttt{sparse(Y)} into return value \texttt{W\_comp.Y}
+
+
+\end{enumerate}
+
+
+\paragraph{Decompression} receives the compressed signal \texttt{W\_comp} and
+returns the decompressed \texttt{W\_rec} performing following steps:
+
+\begin{enumerate}
+
+\item get the DCT basis matrix $U$ with \texttt{dctmtx}
+
+\item compute the transformation $\texttt{W\_rec} = U^T \cdot
+\texttt{W\_comp}.Y$
+
+\item reshape \texttt{W\_rec} to its original dimensions and return it
+
+\end{enumerate}
+
+\subsection{Wavelet Compression}
+\label{sec:waveletCompression}
+
+\paragraph{Compression} receives input signal \texttt{W}, sample rate
+\texttt{Fs} and a compression \texttt{factor}. It returns a data structure
+\texttt{W\_comp} containing a sparse matrix and some auxiliary data. Following
+steps are performed:
+
+\begin{enumerate}
+
+\item reshape \texttt{W} into a squared matrix $R$ having width and length
+powers of 2
+
+\item get the Wavelet basis matrix $U$ with \texttt{haarTrans}
+
+\item transform $R$ to: $Y = U \cdot R$
+
+\item compute a $threshold = mean(abs(Y)) \cdot \texttt{factor}$
+
+\item set all elements $i$ of $Y$ where $Y_i < threshold$ to $0$
+
+\item save \texttt{sparse(Y)} into return value \texttt{W\_comp.Y}
+
+
+\end{enumerate}
+
+
+\paragraph{Decompression} receives the compressed signal \texttt{W\_comp} and
+returns the decompressed \texttt{W\_rec} performing following steps:
+
+\begin{enumerate}
+
+\item get the Wavelet basis matrix $U$ with \texttt{haarTrans}
+
+\item compute the transformation $\texttt{W\_rec} = U^T \cdot
+\texttt{W\_comp}.Y$
+
+\item reshape \texttt{W\_rec} to its original dimensions and return it
+
+\end{enumerate}
+
+\newpage
+\section{Experiments and Results}
+
+The benchmark described in \autoref{sec:implementation} was applied to an audio
+signal containing speech and one containing music, both obtained from the Opus
+codec website. The benchmark computes PSNR and compression rate at a given
+compression factor. Increasing the compression factor in the benchmarks also
+increases the PSNR and compression rates. Figures \ref{fig:music_performance}
+and \ref{fig:speech_performance} show the performance of the compression methods
+applied to the different audio signals.
+
+In compression method comparisons one often sees the comparison of PSNR and
+bitrate. Since my wavelet compression algorithm cannot be applied to samples
+rather it has to be applied to the whole audio signal to decompress it
+at once, I decided to measure only the overall compression rate and not bitrates.
+
+\begin{figure}[h!]
+\centering
+\begin{minipage}{0.5\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{figures/music.eps}
+\caption{performance on music}
+\label{fig:music_performance}
+\end{minipage}\hfill
+\begin{minipage}{0.5\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{figures/speech.eps}
+\caption{performance on speech}
+\label{fig:speech_performance}
+\end{minipage}
+\end{figure}
+\section{Discussion} As expected in the introduction the DCT-based compression
+results in better compression rates than the Wavelet-based approach. On the
+other hand one can say that it achieves better quality at a fixed compression
+rate. When listening to the decompressed speech files the ones having a PSNR
+above 45 dB sound nearly transparent to my ears while I could hear more and more
+artefacts with higher compression. For the decompressed music I had to go to
+about 55 dB to not hear any more artefacts.
+
+An other advantage of the DCT-based approach is its ability to decompress sample
+by sample. This is due to keeping the sample order in the compressed data
+structure and thus also keeping the time semantics. This means it could be
+applied to a music player that decompresses only a few samples at a time which
+then get to be played. The wavelet-based approach does not keep the order of the
+samples, since the signal is reshaped to a square matrix and thus an audio
+player would have to decompress the audio signal fully, before being able to
+play it.
+
+\paragraph{Room for Improvement} There are some things that could be improved in
+some future work:
+
+\begin{itemize}
+
+\item My work does not look at any sort of psychoacoustic models. One could have
+a look into improving the methods in that direction. This means finding a better
+way to get rid of inaudible frequencies in both compression methods.
+
+\item To actually compress the matrices I use the \texttt{sparse(x)} function of
+Matlab. To achieve higher compression ratios it would make sense to replace
+\texttt{sparse(x)} with some kind of entropy coding.
+
+\item An other idea is to find a better way to apply wavlet based methods to
+samples rather to the whole audio file itself.
+
+\end{itemize}
+\section{Summary and Conclusion}
+
+In this work I compared a DCT with a Wavelet-based compression method that were
+applied to audio signals. The basic code fragments were developed in the
+Computational Intelligence Lab for images and had to be adapted to audio. My
+work looks at the relationship between quality (PSNR) and compression rate of
+the compressed signals. It shows that the DCT-based approach results in better
+compression when having the same quality.
+
+It was interesting to learn the basic principals of audio compression and to
+hear the differences that appear when different methods get applied to the same
+audio signal. It is always fun to not only see some numbers but to
+actually hear (and thus feel) what those numbers mean.
+
+\end{document}
