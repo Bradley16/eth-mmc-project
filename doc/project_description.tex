@@ -25,6 +25,7 @@
 \usepackage{siunitx} % Provides the \SI{}{} command for typesetting SI units
 
 \usepackage{graphicx} % Required for the inclusion of images
+\usepackage{url}
 
 \setlength\parindent{0pt} % Removes all indentation from paragraphs
 
@@ -36,10 +37,9 @@
 %	DOCUMENT INFORMATION
 %-------------------------------------------------------------------------------
 
-\title{Project Definition: \\ Comparison of Matrix Factorization Based
-Compression Methods Applied to Audio\\ Multimedia Communications HS 2013} %Title
+\title{Project Definition: \\ HDR imaging\\ Multimedia Communications AS 2015} %Title
 
-\author{Philipp \textsc{Rohr} \\ 04-397-030} % Author name
+\author{Taivo Pungas \\ 15-928-336} % Author name
 
 \date{\today} % Date for the report
 
@@ -57,27 +57,23 @@ Compression Methods Applied to Audio\\ Multimedia Communications HS 2013} %Title
 %-------------------------------------------------------------------------------
 
 \section{Motivation}
+Most classified ads -- ranging from real estate to used guitars -- contain images. In most cases these images are taken by non-experts, and even when a professional photographer is used, photos might not reflect the advertised object accurately; one possible cause is the low dynamic range of the images.
 
-In the course Computational Intelligence Lab\footnote{http://cil.inf.ethz.ch/}
-we used several matrix factorization approaches to compress images. These
-approaches included Principal Component Analysis, Singular Value Decomposition,
-Discrete Cosine Transformation, Wavelet Transformation and more. During the
-course we developed quite some code to compress images and compared the
-different approaches in terms of compression rate, error and speed. In my
-project I would like to do a similar analysis for audio. I wonder whether the
-results can be compared to image compression, meaning if they are similar in
-error and compression rate or if they should not be applied to audio at all.
+Assuming the look and feel of images play an important part in buying decisions, we naturally get to the questions: do scenes or objects depicted in HDR images look better compared to LDR images? Which tone mapping operator (TMO) gives the best result?
 
 %-------------------------------------------------------------------------------
 %	SECTION 2
 %-------------------------------------------------------------------------------
 
-\section{Approach} I plan to extend the matlab code base developed for the CIL
-course to make it work with audio signals. I am going to implement at least the
-DCT and the Wavelet Compression and compare them in terms of compression rate
-and error. The audio samples that I am going to use are the ones that can be
-found on the Opus codec website\footnote{http://www.opus-codec.org/examples/},
-one for speech and one with different music styles.
+\section{Approach}
+
+I will:
+\begin{enumerate}
+	\item Create HDR images by combining multiple images taken at different exposures and tone-map the images using a Matlab toolbox\footnote{\url{https://github.com/banterle/HDR_Toolbox}} from \cite{Banterle:2011}.
+	\item In a survey\footnote{Potentially using the Amazon Mechanical Turk Sentiment App: \url{https://requester.mturk.com/create/sentiment/about}}, ask users how pleasant and realistic the images are.
+	\item Automatically extract aesthetic quality scores from the image, using the method from \cite{aydin2015automated}.
+	\item Compare the results of LDR images and different TMOs for HDR images.
+\end{enumerate}
 
 
 %-------------------------------------------------------------------------------
@@ -85,21 +81,16 @@ one for speech and one with different music styles.
 %-------------------------------------------------------------------------------
 
 \section{Expected Outcome}
+I will rank different TMOs and compare them with LDR images. I will find out whether this ranking depends on the object (person vs dog vs landscape), lighting conditions and possibly other factors.
 
-In CIL we've learned that DCT shall be better for continuous signals while
-wavelet transformation can be better applied to compress localized signals. This
-can be seen in image compression where the wavelet based JPEG2000 achieves
-better results than its predecessor JPEG which is DCT based. Since audio has
-more continuous characteristics I expect to achieve better results with DCT than
-with the wavelet approach.
 
 %-------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
 %-------------------------------------------------------------------------------
 
-%\bibliographystyle{unsrt}
+\bibliographystyle{unsrt}
 
-%\bibliography{sample}
+\bibliography{report}
 
 %-------------------------------------------------------------------------------
 
