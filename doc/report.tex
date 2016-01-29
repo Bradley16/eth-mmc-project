@@ -56,8 +56,8 @@ We can solve to the problem of reducing a large range of luminance values (from 
 
 Having multiple criteria implies multiple optimisation goals and so we should expect that there is no single optimal solution; rather, choosing a TMO involves some amount of artistic liberty. The goal of this work is to find the TMO that is considered aesthetically most pleasing by users.
 
-\section{Implementation and pipeline}
-\label{sec:implementation}
+\section{Implementation}
+\subsection{Pipeline}
 
 The end-to-end pipeline of selecting images for surveys was as follows:
 \begin{itemize}
@@ -71,7 +71,11 @@ The end-to-end pipeline of selecting images for surveys was as follows:
 
 \end{itemize}
 
-This process yielded 16 images: one for each TMO-scene pair. \\
+This process yielded 16 images: one for each TMO-scene pair.
+
+\subsection{Resources}
+
+All of the resources described below are available at the GitHub repository of this project\footnote{\url{https://github.com/taivop/eth-mmc-project}}.
 
 \paragraph{Code} The implementation can be found in the folder \texttt{code}: 
 
@@ -97,6 +101,15 @@ This process yielded 16 images: one for each TMO-scene pair. \\
 	\item \verb+tmo__Original.JPG+, the image taken using automatic settings chosen by the camera.
 	\item \verb+tmo_<name>.jpg+, the tone-mapped images, where \texttt{<name>} is the name of the TMO used.
 	\end{itemize}
+
+\end{itemize}
+
+\paragraph{Data analysis} Survey result data and the visualisation script can be found in the folder \texttt{analysis}.
+
+\begin{itemize}
+
+\item \texttt{results.csv} contains results of the user survey. The columns are coded as two characters \texttt{XY} where \texttt{X} is the first letter of the scene (e.g. \texttt{T} stands for Toompea) and \texttt{Y} is the first letter of the TMO (e.g. \texttt{M} stands for Mertens).
+\item \texttt{plotting.R} contains the R scripts used for analysing and visualising data.
 
 \end{itemize}
 
